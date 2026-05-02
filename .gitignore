@@ -1,0 +1,40 @@
+# ── Secrets & local config ──────────────────────────────────────────────────
+.env
+.env.*
+*.env
+
+# User profile contains company name and location — don't commit
+user_profile.json
+
+# Local SQLite database — each deployment starts with its own empty db
+suppliers.db
+
+# Streamlit Cloud uses secrets.toml (real one, not the example)
+.streamlit/secrets.toml
+
+# ── Claude Code ──────────────────────────────────────────────────────────────
+.claude/
+
+# ── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# ── Virtual environments ─────────────────────────────────────────────────────
+venv/
+.venv/
+env/
+.env/
+
+# ── OS noise ─────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── IDE ──────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
