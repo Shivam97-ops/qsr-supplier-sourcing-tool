@@ -31,33 +31,29 @@ import logistics_config as lc
 # SCORE COMPUTATION
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Maximum points allowed per score component.
-# These must match the rubric given to Claude in the prompt below.
+# Kept for backward compatibility with any saved suppliers using the old format.
 SCORE_MAXES = {
-    "food_safety_certs":  25,   # ISO 22000, FSSC, FDA, HACCP, etc.
-    "export_experience":  20,   # Evidence of international trade
-    "years_established":  20,   # Longevity signals reliability
-    "product_specificity": 20,  # How closely matched to the QSR product
-    "contact_available":  15,   # Contact info found (email, phone)
+    "food_safety_certs":  25,
+    "export_experience":  20,
+    "years_established":  20,
+    "product_specificity": 20,
+    "contact_available":  15,
 }
 
 
 def compute_total_score(breakdown: dict) -> int:
     """
-    Sums the score components returned by Claude, clamping each to its
-    allowed maximum so hallucinated values cannot inflate the total.
-
-    Args:
-        breakdown: Dict with keys matching SCORE_MAXES
-
-    Returns:
-        Integer 0–100
+    Returns the supplier score from a breakdown dict.
+    New format: reads final_score directly (Claude computes it per the additive rubric).
+    Old format fallback: sums clamped component scores.
     """
+    if "final_score" in breakdown:
+        return max(0, min(100, int(breakdown["final_score"])))
+    # Fallback for old-format breakdowns (saved suppliers)
     total = 0
     for key, max_val in SCORE_MAXES.items():
         raw = breakdown.get(key, 0)
-        clamped = min(int(raw), max_val)
-        total += clamped
+        total += min(int(raw), max_val)
     return min(total, 100)
 
 
@@ -228,9 +224,23 @@ def compute_landed_cost(supplier: dict, qsr_category: str) -> dict:
     region = _get_region(origin)
     is_cusma = origin in lc.CUSMA_COUNTRIES
 
-    # Typical mid-market FOB price for this category
+    # Supplier-class multiplier — differentiates cost tiers across suppliers
+    sclass = supplier.get("supplier_class", "Distributor")
+    is_mfr = sclass in ("Manufacturer", "Local Vendor")
+    is_ontario = "ontario" in supplier.get("location", "").lower()
+    if is_mfr and is_cusma and is_ontario:
+        fob_multiplier = 1.00
+    elif is_mfr and is_cusma:
+        fob_multiplier = 1.05
+    elif sclass == "Distributor" and is_cusma:
+        fob_multiplier = 1.10
+    elif sclass == "Distributor":
+        fob_multiplier = 1.20
+    else:
+        fob_multiplier = 1.35
+
     cat_prices = lc.TYPICAL_FOB_PRICES.get(qsr_category, lc.TYPICAL_FOB_PRICES["General"])
-    fob_usd = cat_prices["mid"]
+    fob_usd = cat_prices["mid"] * fob_multiplier
 
     # Select cheapest logistics mode
     if region in ("canada", "usa", "mexico"):
@@ -249,8 +259,18 @@ def compute_landed_cost(supplier: dict, qsr_category: str) -> dict:
     tariff_rate = lc.TARIFF_RATES["cusma"] if is_cusma else lc.TARIFF_RATES["standard"]
     insurance   = fob_usd * lc.INSURANCE_RATE
     import_duty = fob_usd * tariff_rate
-    cfia_usd    = lc.CFIA_FEE_PER_KG_CAD * lc.CAD_TO_USD  # convert CAD→USD
+    cfia_usd    = lc.CFIA_FEE_PER_KG_CAD * lc.CAD_TO_USD
     inventory   = fob_usd * lc.INVENTORY_HOLDING_RATE
+
+    # Guaranteed floors so line items are never $0.000
+    freight_floor  = 0.08 if is_ontario else (0.12 if region == "canada" else 0.18)
+    freight_per_kg = max(freight_per_kg, freight_floor)
+    insurance      = max(insurance, fob_usd * 0.005)
+    if not is_cusma:
+        duty_floor  = 0.15 if region == "canada" else 0.25
+        import_duty = max(import_duty, duty_floor)
+    if cfia_usd + inland_per_kg + inventory < 0.02:
+        cfia_usd = 0.02
 
     total_usd = fob_usd + freight_per_kg + insurance + import_duty + cfia_usd + inland_per_kg + inventory
 
@@ -320,50 +340,44 @@ Description: {supplier_raw['snippet']}
 
 Analyse this result and return a JSON supplier profile. Follow every instruction below exactly.
 
-━━━━ SCORING RUBRIC ━━━━
-You MUST assign non-zero scores wherever ANY supporting evidence exists.
-A score of 0 means you have CONFIRMED ABSENCE of that attribute — not that you are unsure.
-When uncertain, use the mid-range value. Never return all zeros.
+━━━━ SCORING SYSTEM — ADDITIVE ━━━━
+Compute the score by starting at a base of 50 and adding/subtracting bonuses and deductions.
+Clamp final_score to the range 0–100.
 
-food_safety_certs (0–25):
-  25 → Two or more named certs: ISO 22000, FSSC 22000, FDA registered, HACCP, BRC, IFS, SQF, GlobalG.A.P
-  15 → Exactly one of the above certifications
-  12 → Established Manufacturer or Distributor but certifications not publicly confirmed —
-       most large manufacturers hold certs without listing them on every page; award partial credit
-   5 → Vague language ("food safe", "meets standards") with no specific cert named
-   0 → CONFIRMED: no certifications AND this is an unknown or newly-formed entity with no track record
+BASE: 50 — for any verified business with a working website.
 
-IMPORTANT: If you cannot confirm specific certifications from available information, do NOT score
-as zero. Note "Certifications not publicly confirmed — contact supplier to verify" and award 12/25
-for any established Manufacturer or Distributor.
+BONUSES (add to the appropriate field):
+  cusma_bonus  +15 → Supplier is Canadian or USA-based (CUSMA/USMCA tariff-free for a Canadian buyer)
+               +0  → All other countries
+  type_bonus   +10 → Supplier is a Manufacturer (makes the product in their own facility)
+               +0  → Distributor
+               -10 → Trader or Broker (intermediary; does not manufacture or hold inventory)
+  cert_bonus   +8 per confirmed cert (HACCP, ISO 22000, FSSC 22000, FDA registered, BRC, SQF, GlobalG.A.P), max +20
+               +4 per implied/unconfirmed cert for an established Manufacturer (certs likely held but not listed), max +10
+               -15 → No certifications found AND supplier shows no evidence of any food safety compliance programme
+  focus_bonus  +8 → Supplier explicitly focuses on foodservice, QSR, restaurant, or institutional food supply
+               +0 → General food company with no stated QSR focus
+  location_bonus +5 → Supplier is in Ontario OR regularly ships to Ontario buyers
+               +0 → No Ontario connection stated
+  address_bonus  +3 → Physical address or facility location is confirmed in the available information
+               +0 → No address found
+  foodservice_bonus +4 → Has a dedicated foodservice product line, foodservice catalogue, or foodservice sales team
+               +0 → No dedicated foodservice channel
 
-export_experience (0–20):
-  20 → Explicit mention of multiple export markets OR "international clients" OR "global supply"
-  10 → Single mention of export, "we export to", or "global reach"
-   5 → Implied international operations (e.g., multiple country offices)
-   0 → CONFIRMED: domestic market only, no export evidence whatsoever
+DEDUCTIONS (sum all that apply into the single "deductions" field as a negative integer):
+  -8  → Non-CUSMA offshore supplier (applies when cusma_bonus = 0)
+  -5  → Single-source dependency risk (no backup, no alternative product line, very narrow range)
+  -8  → No physical address AND no direct contact found (website only, no phone, no email)
+  -3  → Company age or founding year completely unconfirmed
 
-years_established (0–20):
-  20 → Founded >20 years ago OR "decades of experience" OR year founded before 2004
-  15 → 10–20 years in operation
-  10 → 5–10 years in operation
-   5 → Less than 5 years OR recently established
-   3 → No founding date mentioned but company appears established (has website, reviews, etc.)
-   0 → CONFIRMED: brand new company with no history
+IMPORTANT: Do NOT deduct -10 for Trader/Broker in deductions — that is already captured in type_bonus.
+Do NOT double-count the -8 non-CUSMA deduction if you already awarded cusma_bonus = 0.
 
-product_specificity (0–20):
-  20 → Supplier explicitly names "{product}" or close equivalent AND mentions QSR/foodservice/restaurant
-  15 → Names the product category but not QSR context
-  10 → General food manufacturer that produces this type of product
-   5 → Tangentially related food company that could potentially supply
-   0 → CONFIRMED: completely unrelated to "{product}" or food
-
-contact_available (0–15):
-  15 → Email address AND phone number both visible in the text
-  10 → One of email or phone found
-   5 → "Contact us" form or page mentioned
-   2 → Website exists (contact info likely available on the site)
-   0 → CONFIRMED: no website, no contact method whatsoever
+EXPECTED SCORE RANGES (use these to sanity-check your result):
+  Strong Canadian/Ontario manufacturer with 2+ confirmed certs: 75–90
+  Verified US CUSMA manufacturer with confirmed certs: 65–80
+  Offshore non-CUSMA manufacturer: 50–65
+  Trader/broker with unconfirmed certs: 40–55
 
 ━━━━ SUPPLIER CLASSIFICATION ━━━━
 Classify as exactly one of:
@@ -426,11 +440,17 @@ Respond ONLY with a valid JSON object. No markdown, no explanation, no extra tex
   "summary": "2-3 sentences: what they produce, their scale, why they suit a QSR buyer",
   "strengths": "3 key strengths as a comma-separated string",
   "score_breakdown": {{
-    "food_safety_certs": 0,
-    "export_experience": 0,
-    "years_established": 0,
-    "product_specificity": 0,
-    "contact_available": 0
+    "base": 50,
+    "cusma_bonus": 0,
+    "type_bonus": 0,
+    "cert_bonus": 0,
+    "focus_bonus": 0,
+    "location_bonus": 0,
+    "address_bonus": 0,
+    "foodservice_bonus": 0,
+    "deductions": 0,
+    "final_score": 0,
+    "score_rationale": "One sentence: biggest factor pushing score up AND biggest factor holding it down"
   }},
   "risk_assessment": {{
     "geopolitical_risk": 0,
@@ -460,8 +480,9 @@ Respond ONLY with a valid JSON object. No markdown, no explanation, no extra tex
 
     # ── First API call ──
     # Using a system prompt to strongly reinforce JSON-only output.
+    # Sonnet 4.6 — deep reasoning for risk, scoring, and strategy
     response = client.messages.create(
-        model="claude-haiku-4-5-20251001",
+        model="claude-sonnet-4-6",
         max_tokens=1400,
         system=(
             "You are a QSR procurement analyst. "
@@ -479,8 +500,9 @@ Respond ONLY with a valid JSON object. No markdown, no explanation, no extra tex
         parsed = _extract_json(response_text)
     except (json.JSONDecodeError, ValueError):
         # One retry: ask Claude to fix the JSON
+        # Sonnet 4.6 — deep reasoning for risk, scoring, and strategy (retry)
         retry_response = client.messages.create(
-            model="claude-haiku-4-5-20251001",
+            model="claude-sonnet-4-6",
             max_tokens=1400,
             system="Return only valid JSON. No markdown. No extra text.",
             messages=[
@@ -503,25 +525,7 @@ Respond ONLY with a valid JSON object. No markdown, no explanation, no extra tex
     if not isinstance(parsed.get("risk_flags"), list):
         parsed["risk_flags"] = []
 
-    # Benefit-of-the-doubt: established Manufacturers scoring 0 on certs almost certainly
-    # hold certifications — they just weren't in the snippet. Award 12/25 partial credit
-    # and swap the generic "no certs" flag for the softer verification note.
-    breakdown = parsed.get("score_breakdown", {})
-    sup_class = parsed.get("supplier_class", "")
-    if (breakdown.get("food_safety_certs", 0) == 0
-            and not parsed["certifications"]
-            and sup_class in ("Manufacturer", "Local Vendor")):
-        breakdown["food_safety_certs"] = 12
-        parsed["score_breakdown"] = breakdown
-        parsed["risk_flags"] = [
-            f for f in parsed["risk_flags"]
-            if "no food safety" not in f.lower()
-        ]
-        note = "Certifications not publicly confirmed — verify directly with supplier"
-        if note not in parsed["risk_flags"]:
-            parsed["risk_flags"].append(note)
-
-    # Compute numeric score from the (possibly adjusted) breakdown
+    # Compute numeric score from the breakdown (uses final_score if present)
     parsed["score"] = compute_total_score(parsed.get("score_breakdown", {}))
 
     # Ensure risk_assessment is a dict
@@ -699,8 +703,9 @@ def search_suppliers_with_claude(
 
     response_text = ""
     try:
+        # Haiku — lightweight JSON retrieval, no deep reasoning needed
         response = client.messages.create(
-            model="claude-sonnet-4-6",
+            model="claude-haiku-4-5-20251001",
             max_tokens=800,
             timeout=20.0,
             system=(
@@ -863,7 +868,8 @@ Return a JSON object with exactly these keys:
 
     try:
         response = client.messages.create(
-            model="claude-haiku-4-5-20251001",
+            # Sonnet 4.6 — strategy reasoning requires nuanced multi-supplier analysis
+            model="claude-sonnet-4-6",
             max_tokens=1200,
             system=(
                 "You are a QSR procurement strategist. "

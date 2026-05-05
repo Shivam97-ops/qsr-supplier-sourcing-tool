@@ -41,81 +41,97 @@ st.set_page_config(
 )
 
 # ─────────────────────────────────────────────────────────────────────────────
-# GLOBAL DARK THEME CSS
+# GLOBAL CSS — design system
 # ─────────────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+:root {
+  --bg0:#0b0f14; --bg1:#111720; --bg2:#161e2a; --bg3:#1c2535; --bg4:#232f42;
+  --border:#2a3a52; --border2:#334760;
+  --text1:#e2e8f0; --text2:#94a3b8; --text3:#64748b;
+  --accent:#4f83cc; --accent2:#3d6ba8; --accent-dim:#1e3a5f;
+  --green:#22c55e; --amber:#f59e0b; --red:#ef4444;
+  --teal:#06b6d4; --purple:#8b5cf6;
+}
 
-.stApp { background-color:#0A0E1A !important; font-family:'Inter',sans-serif !important; }
-.stApp > header { background-color:#0A0E1A !important; }
-.main .block-container { background-color:#0A0E1A !important; }
+* { font-family:system-ui,-apple-system,sans-serif !important; box-sizing:border-box; }
 
-[data-testid="stSidebar"] { background-color:#060910 !important; }
-[data-testid="stSidebar"] * { color:#F0F4FF !important; }
+.stApp { background-color:var(--bg0) !important; }
+.stApp > header { background-color:var(--bg0) !important; }
+.main .block-container { background-color:var(--bg0) !important; max-width:1400px !important; padding-top:1rem !important; }
 
-.stMarkdown, .stMarkdown p, .stMarkdown h1, .stMarkdown h2,
-.stMarkdown h3, .stMarkdown h4, .stMarkdown li { color:#F0F4FF !important; }
+[data-testid="stSidebar"] { background-color:var(--bg1) !important; border-right:1px solid var(--border) !important; }
+[data-testid="stSidebar"] * { color:var(--text1) !important; }
+
+.stMarkdown, .stMarkdown p, .stMarkdown li { color:var(--text1) !important; }
+.stMarkdown h1,.stMarkdown h2,.stMarkdown h3,.stMarkdown h4 { color:var(--text1) !important; }
 
 .stTextInput > div > div > input {
-    background-color:#111827 !important; border:1px solid #1E2A3A !important;
-    color:#F0F4FF !important; border-radius:6px !important;
+    background-color:var(--bg2) !important; border:1px solid var(--border) !important;
+    color:var(--text1) !important; border-radius:6px !important; font-size:0.88rem !important;
 }
 .stTextInput > div > div > input:focus {
-    border-color:#00D4FF !important; box-shadow:0 0 0 2px rgba(0,212,255,0.15) !important;
+    border-color:var(--accent) !important; box-shadow:0 0 0 2px rgba(79,131,204,0.2) !important;
 }
-.stTextInput label { color:#8892A4 !important; font-size:0.82rem !important; }
+.stTextInput label { color:var(--text3) !important; font-size:0.78rem !important; text-transform:uppercase; letter-spacing:0.05em; }
 
-.stSelectbox > div > div { background-color:#111827 !important; border:1px solid #1E2A3A !important; color:#F0F4FF !important; }
-.stSelectbox [data-baseweb="select"] > div { background-color:#111827 !important; border-color:#1E2A3A !important; color:#F0F4FF !important; }
-.stSelectbox label { color:#8892A4 !important; }
+.stSelectbox > div > div,
+.stSelectbox [data-baseweb="select"] > div {
+    background-color:var(--bg2) !important; border:1px solid var(--border) !important;
+    color:var(--text1) !important;
+}
+.stSelectbox label { color:var(--text3) !important; font-size:0.78rem !important; text-transform:uppercase; letter-spacing:0.05em; }
 
 .stButton > button {
-    background:linear-gradient(135deg,#00D4FF,#0099CC) !important;
-    color:#0A0E1A !important; font-weight:700 !important;
-    border:none !important; border-radius:8px !important;
-    font-family:'Inter',sans-serif !important;
+    background:var(--accent-dim) !important; color:var(--accent) !important;
+    border:1px solid var(--accent) !important; border-radius:6px !important;
+    font-size:0.82rem !important; font-weight:600 !important; padding:6px 14px !important;
 }
-.stButton > button:hover { background:linear-gradient(135deg,#33DDFF,#00AADD) !important; color:#0A0E1A !important; }
+.stButton > button:hover { background:var(--accent2) !important; color:#fff !important; }
 .stFormSubmitButton > button {
-    background:linear-gradient(135deg,#00D4FF,#0099CC) !important;
-    color:#0A0E1A !important; font-weight:700 !important;
-    border:none !important; border-radius:8px !important;
-    padding:14px !important; font-family:'Inter',sans-serif !important;
+    background:var(--accent) !important; color:#fff !important;
+    border:none !important; border-radius:6px !important;
+    font-size:0.88rem !important; font-weight:600 !important; padding:10px 20px !important;
 }
-.stLinkButton a { background:transparent !important; border:1px solid #1E2A3A !important; color:#00D4FF !important; border-radius:6px !important; }
+.stFormSubmitButton > button:hover { background:var(--accent2) !important; }
+.stLinkButton a {
+    background:transparent !important; border:1px solid var(--border2) !important;
+    color:var(--text2) !important; border-radius:6px !important;
+    font-size:0.8rem !important; padding:5px 12px !important;
+}
+.stLinkButton a:hover { border-color:var(--accent) !important; color:var(--accent) !important; }
 
-.stTabs [data-baseweb="tab-list"] { background-color:#060910 !important; border-bottom:1px solid #1E2A3A !important; }
-.stTabs [data-baseweb="tab"] { background-color:transparent !important; color:#8892A4 !important; font-family:'Inter',sans-serif !important; font-weight:500 !important; }
-.stTabs [aria-selected="true"] { background-color:rgba(0,212,255,0.08) !important; color:#00D4FF !important; border-bottom:2px solid #00D4FF !important; }
+.stTabs [data-baseweb="tab-list"] { background-color:var(--bg1) !important; border-bottom:1px solid var(--border) !important; gap:4px !important; }
+.stTabs [data-baseweb="tab"] { background:transparent !important; color:var(--text3) !important; font-size:0.82rem !important; font-weight:500 !important; border-radius:6px 6px 0 0 !important; padding:8px 16px !important; }
+.stTabs [aria-selected="true"] { background:rgba(79,131,204,0.12) !important; color:var(--accent) !important; border-bottom:2px solid var(--accent) !important; }
 
-.streamlit-expanderHeader { background-color:#111827 !important; color:#F0F4FF !important; border:1px solid #1E2A3A !important; border-radius:8px !important; }
-.streamlit-expanderContent { background-color:#111827 !important; border:1px solid #1E2A3A !important; border-top:none !important; }
+.streamlit-expanderHeader { background-color:var(--bg3) !important; color:var(--text2) !important; border:1px solid var(--border) !important; border-radius:6px !important; font-size:0.8rem !important; }
+.streamlit-expanderContent { background-color:var(--bg3) !important; border:1px solid var(--border) !important; border-top:none !important; border-radius:0 0 6px 6px !important; }
 
-[data-testid="stMetricValue"] { color:#00D4FF !important; font-family:'Inter',sans-serif !important; font-weight:700 !important; }
-[data-testid="stMetricLabel"] { color:#8892A4 !important; }
-[data-testid="metric-container"] { background-color:#111827 !important; border:1px solid #1E2A3A !important; border-top:2px solid #00D4FF !important; border-radius:8px !important; padding:12px 16px !important; }
+[data-testid="stMetricValue"] { color:var(--text1) !important; font-size:1.1rem !important; font-weight:700 !important; }
+[data-testid="stMetricLabel"] { color:var(--text3) !important; font-size:0.72rem !important; text-transform:uppercase; letter-spacing:0.05em; }
+[data-testid="metric-container"] { background-color:var(--bg2) !important; border:1px solid var(--border) !important; border-radius:8px !important; padding:12px 16px !important; }
 
-.stDataFrame { background-color:#111827 !important; }
-.stDataFrame thead tr th { background-color:#1E2A3A !important; color:#8892A4 !important; }
-.stDataFrame tbody tr td { background-color:#111827 !important; color:#F0F4FF !important; }
+.stDataFrame { background-color:var(--bg2) !important; }
+.stDataFrame thead tr th { background-color:var(--bg3) !important; color:var(--text3) !important; font-size:0.72rem !important; text-transform:uppercase; }
+.stDataFrame tbody tr td { background-color:var(--bg2) !important; color:var(--text1) !important; font-size:0.82rem !important; }
 
-.stProgress > div > div > div > div { background-color:#00D4FF !important; }
+.stProgress > div > div > div > div { background-color:var(--accent) !important; }
 
-[data-testid="stInfo"] { background-color:rgba(0,212,255,0.07) !important; border-left:3px solid #00D4FF !important; color:#F0F4FF !important; }
-[data-testid="stWarning"] { background-color:rgba(255,184,0,0.07) !important; border-left:3px solid #FFB800 !important; color:#F0F4FF !important; }
-[data-testid="stError"] { background-color:rgba(255,71,87,0.07) !important; border-left:3px solid #FF4757 !important; color:#F0F4FF !important; }
-[data-testid="stSuccess"] { background-color:rgba(0,224,150,0.07) !important; border-left:3px solid #00E096 !important; color:#F0F4FF !important; }
+[data-testid="stInfo"]    { background:rgba(79,131,204,0.08) !important; border-left:3px solid var(--accent) !important; color:var(--text1) !important; }
+[data-testid="stWarning"] { background:rgba(245,158,11,0.08) !important; border-left:3px solid var(--amber) !important; color:var(--text1) !important; }
+[data-testid="stError"]   { background:rgba(239,68,68,0.08) !important; border-left:3px solid var(--red) !important; color:var(--text1) !important; }
+[data-testid="stSuccess"] { background:rgba(34,197,94,0.08) !important; border-left:3px solid var(--green) !important; color:var(--text1) !important; }
 
-div[data-testid="stCaptionContainer"] p { color:#8892A4 !important; }
-.stCheckbox label { color:#F0F4FF !important; }
-.stSlider label, .stSlider div { color:#F0F4FF !important; }
-.stTextArea textarea { background-color:#111827 !important; border:1px solid #1E2A3A !important; color:#F0F4FF !important; border-radius:6px !important; }
+div[data-testid="stCaptionContainer"] p { color:var(--text3) !important; font-size:0.78rem !important; }
+.stCheckbox label { color:var(--text2) !important; }
+.stSlider label, .stSlider div { color:var(--text2) !important; }
+.stTextArea textarea { background-color:var(--bg2) !important; border:1px solid var(--border) !important; color:var(--text1) !important; border-radius:6px !important; font-size:0.85rem !important; }
 
-::-webkit-scrollbar { width:5px; height:5px; }
-::-webkit-scrollbar-track { background:#0A0E1A; }
-::-webkit-scrollbar-thumb { background:#1E2A3A; border-radius:3px; }
-::-webkit-scrollbar-thumb:hover { background:#2a3a5a; }
+::-webkit-scrollbar { width:4px; height:4px; }
+::-webkit-scrollbar-track { background:var(--bg0); }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+::-webkit-scrollbar-thumb:hover { background:var(--border2); }
 </style>
 """, unsafe_allow_html=True)
 
@@ -176,44 +192,36 @@ migrate_db()
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# REUSABLE INLINE-STYLE CONSTANTS  (dark theme)
+# REUSABLE INLINE-STYLE CONSTANTS
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Cards
-_CARD  = "background:#111827; border:1px solid #1E2A3A; border-radius:12px; padding:20px 24px 16px 24px; margin-bottom:12px; box-shadow:0 4px 24px rgba(0,0,0,0.4);"
-_CCARD = "background:#111827; border:1px solid #1E2A3A; border-radius:12px; padding:18px; margin:4px 0;"
+_CARD  = "background:#161e2a; border:1px solid #2a3a52; border-radius:8px; padding:14px 16px 10px 16px; margin-bottom:8px;"
+_CCARD = "background:#161e2a; border:1px solid #2a3a52; border-radius:8px; padding:14px; margin:4px 0;"
 
-# Typography
-_NAME      = "font-size:1.15rem; font-weight:700; color:#F0F4FF; margin-bottom:4px; font-family:'Space Grotesk',sans-serif;"
-_CNAME     = "font-size:1rem; font-weight:700; color:#F0F4FF; margin-bottom:8px; border-bottom:1px solid #1E2A3A; padding-bottom:8px; font-family:'Space Grotesk',sans-serif;"
-_CLABEL    = "font-size:0.72rem; color:#8892A4; text-transform:uppercase; letter-spacing:0.08em; margin-top:10px; margin-bottom:2px;"
-_CVALUE    = "font-size:0.88rem; color:#D0D8E8; margin-bottom:2px;"
-_MUTED     = "color:#8892A4; font-size:0.85rem;"
-_SECTION_H = "font-size:1.4rem; font-weight:700; color:#F0F4FF; border-bottom:2px solid #00D4FF; padding-bottom:8px; margin-bottom:20px; font-family:'Space Grotesk',sans-serif;"
+_NAME      = "font-size:0.88rem; font-weight:600; color:#e2e8f0; margin-bottom:2px;"
+_CNAME     = "font-size:0.85rem; font-weight:600; color:#e2e8f0; margin-bottom:6px; border-bottom:1px solid #2a3a52; padding-bottom:6px;"
+_CLABEL    = "font-size:0.68rem; color:#64748b; text-transform:uppercase; letter-spacing:0.08em; margin-top:8px; margin-bottom:2px;"
+_CVALUE    = "font-size:0.82rem; color:#94a3b8; margin-bottom:2px;"
+_MUTED     = "color:#64748b; font-size:0.78rem;"
+_SECTION_H = "font-size:0.72rem; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:0.1em; background:#111720; padding:6px 0 6px 0; margin-bottom:10px; border-bottom:1px solid #2a3a52;"
 
-# 4-type supplier class badges
-_CLASS_MANUFACTURER = "background:#003D26; color:#00E096; padding:3px 10px; border-radius:20px; font-size:0.78rem; font-weight:700; margin-right:4px;"
-_CLASS_DISTRIBUTOR  = "background:#003040; color:#00D4FF; padding:3px 10px; border-radius:20px; font-size:0.78rem; font-weight:700; margin-right:4px;"
-_CLASS_TRADER       = "background:#3D2A00; color:#FFB800; padding:3px 10px; border-radius:20px; font-size:0.78rem; font-weight:700; margin-right:4px;"
-_CLASS_LOCAL        = "background:#2A003D; color:#C084FC; padding:3px 10px; border-radius:20px; font-size:0.78rem; font-weight:700; margin-right:4px;"
+# Supplier-type badges
+_CLASS_MANUFACTURER = "background:#1a3a28; color:#22c55e; padding:2px 7px; border-radius:4px; font-size:0.68rem; font-weight:600; margin-right:3px;"
+_CLASS_DISTRIBUTOR  = "background:#1e3a5f; color:#4f83cc; padding:2px 7px; border-radius:4px; font-size:0.68rem; font-weight:600; margin-right:3px;"
+_CLASS_TRADER       = "background:#3a2a10; color:#f59e0b; padding:2px 7px; border-radius:4px; font-size:0.68rem; font-weight:600; margin-right:3px;"
+_CLASS_LOCAL        = "background:#2a1a3a; color:#8b5cf6; padding:2px 7px; border-radius:4px; font-size:0.68rem; font-weight:600; margin-right:3px;"
 
-# Risk level badges
-_RISK_HIGH   = "background:#3D0A0F; color:#FF4757; padding:3px 10px; border-radius:20px; font-size:0.78rem; font-weight:700;"
-_RISK_MEDIUM = "background:#3D2A00; color:#FFB800; padding:3px 10px; border-radius:20px; font-size:0.78rem; font-weight:700;"
-_RISK_LOW    = "background:#003D26; color:#00E096; padding:3px 10px; border-radius:20px; font-size:0.78rem; font-weight:700;"
+# Risk badges
+_RISK_HIGH   = "background:#3a1010; color:#ef4444; padding:2px 7px; border-radius:4px; font-size:0.68rem; font-weight:600;"
+_RISK_MEDIUM = "background:#3a2a10; color:#f59e0b; padding:2px 7px; border-radius:4px; font-size:0.68rem; font-weight:600;"
+_RISK_LOW    = "background:#1a3a28; color:#22c55e; padding:2px 7px; border-radius:4px; font-size:0.68rem; font-weight:600;"
 
-# CUSMA badge
-_CUSMA = "background:#003040; color:#00D4FF; padding:2px 9px; border-radius:20px; font-size:0.78rem; font-weight:600;"
+_CUSMA         = "background:#1e3a5f; color:#4f83cc; padding:2px 7px; border-radius:4px; font-size:0.68rem; font-weight:600;"
+_CURATED_BADGE = "background:#2a1a3a; color:#8b5cf6; padding:2px 7px; border-radius:4px; font-size:0.68rem; font-weight:600; margin-right:3px;"
 
-# Curated / verified supplier badge
-_CURATED_BADGE = "background:#3B1FA8; color:#C084FC; padding:3px 10px; border-radius:20px; font-size:0.78rem; font-weight:700; margin-right:4px;"
-
-# Cert and risk-flag pills
-_CERT_PILL = "background:#003D26; color:#00E096; padding:2px 9px; border-radius:20px; font-size:0.72rem; font-weight:600; margin-right:4px; display:inline-block; margin-bottom:3px;"
-_RISK_PILL = "background:#3D0A0F; color:#FF4757; padding:2px 9px; border-radius:20px; font-size:0.72rem; font-weight:600; margin-right:4px; display:inline-block; margin-bottom:3px;"
-
-# Score bar background
-_BAR_BG = "background:#1E2A3A; border-radius:4px; height:6px; width:100%; margin:6px 0 2px 0; overflow:hidden;"
+_CERT_PILL = "border:1px solid #22c55e; color:#22c55e; padding:1px 6px; border-radius:3px; font-size:0.68rem; font-weight:500; margin-right:3px; display:inline-block; margin-bottom:2px;"
+_RISK_PILL = "background:#3a1010; color:#ef4444; padding:1px 6px; border-radius:3px; font-size:0.68rem; font-weight:500; margin-right:3px; display:inline-block; margin-bottom:2px;"
+_BAR_BG    = "background:#1c2535; border-radius:3px; height:4px; width:100%; margin:4px 0 2px 0; overflow:hidden;"
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -255,27 +263,31 @@ def get_risk_badge(risk_level: str, risk_score: int = 0) -> str:
 
 
 def generate_score_gauge(score: int) -> str:
-    """SVG semicircle gauge showing the supplier score 0–100."""
+    """Compact score label for comparison panel."""
     tier  = get_score_tier(score)
     color = tier["color"]
     label = tier["label"]
-    # Semicircle arc r=45 → length = π × 45 ≈ 141.4; fill proportional to score
-    arc_len   = 141.4
-    fill      = arc_len * score / 100
-    gap       = arc_len - fill
-    return f"""
-    <svg width="110" height="64" viewBox="0 0 110 64" style="display:block;margin:0 auto 4px auto;">
-      <path d="M 10 58 A 45 45 0 0 1 100 58" fill="none" stroke="#1E2A3A" stroke-width="9" stroke-linecap="round"/>
-      <path d="M 10 58 A 45 45 0 0 1 100 58" fill="none" stroke="{color}" stroke-width="9"
-            stroke-linecap="round"
-            stroke-dasharray="{fill:.1f} {gap:.1f}"
-            stroke-dashoffset="0"/>
-      <text x="55" y="54" text-anchor="middle" font-size="17" font-weight="700"
-            font-family="Space Grotesk,Inter,sans-serif" fill="{color}">{score}</text>
-    </svg>
-    <div style="text-align:center; font-size:0.72rem; font-weight:700; color:{color};
-                letter-spacing:0.05em; margin-bottom:6px;">{label.upper()}</div>
-    """
+    return (f'<div style="text-align:center; font-size:1rem; font-weight:700; color:{color};">'
+            f'{score}<span style="font-size:0.65rem; color:#64748b;">/100</span></div>'
+            f'<div style="text-align:center; font-size:0.65rem; color:{color}; letter-spacing:0.05em;">{label.upper()}</div>')
+
+
+def generate_score_ring(score: int) -> str:
+    """60×60px SVG radial ring gauge. r=23, circumference≈144."""
+    color = "#22c55e" if score >= 75 else "#f59e0b" if score >= 50 else "#ef4444"
+    offset = 144 - (score / 100 * 144)
+    return (
+        f'<div style="display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;">'
+        f'<svg width="52" height="52" viewBox="0 0 56 56">'
+        f'<circle cx="28" cy="28" r="23" fill="none" stroke="#1c2535" stroke-width="5"/>'
+        f'<circle cx="28" cy="28" r="23" fill="none" stroke="{color}" stroke-width="5"'
+        f' stroke-dasharray="144" stroke-dashoffset="{offset:.1f}"'
+        f' stroke-linecap="round" transform="rotate(-90 28 28)"/>'
+        f'<text x="28" y="33" text-anchor="middle" font-size="13" font-weight="600"'
+        f' fill="#e2e8f0" font-family="system-ui">{score}</text>'
+        f'</svg>'
+        f'</div>'
+    )
 
 
 def render_score_bar(score: int) -> str:
@@ -294,172 +306,134 @@ def render_score_bar(score: int) -> str:
 
 
 def render_cert_badges(certs: list, supplier_class: str = "") -> str:
-    """Green pill badges for certifications, or contextual message when none are listed."""
     if certs:
         return " ".join(f'<span style="{_CERT_PILL}">✓ {c}</span>' for c in certs)
     if supplier_class in ("Manufacturer", "Local Vendor"):
-        return (
-            '<span style="color:#FFB800; font-size:0.78rem; font-style:italic;">'
-            '⚠️ Certifications not publicly listed — verify directly with supplier'
-            '</span>'
-        )
-    return '<span style="color:#FF4757; font-size:0.78rem;">❌ No certifications confirmed</span>'
+        return '<span style="border:1px solid #f59e0b; color:#f59e0b; padding:1px 6px; border-radius:3px; font-size:0.68rem;">⚠ Unconfirmed — verify</span>'
+    return '<span style="color:#ef4444; font-size:0.72rem;">✕ None found</span>'
 
 
 def render_risk_badges(flags: list) -> str:
-    """Red pill badges for risk flags."""
     if not flags:
-        return '<span style="color:#00E096; font-size:0.78rem;">✓ No risk flags</span>'
-    return " ".join(f'<span style="{_RISK_PILL}">⚠ {flag}</span>' for flag in flags)
-
-
-def render_risk_bar(score: int, label: str, color: str) -> str:
-    """Returns an HTML mini-bar for one risk category (higher = worse)."""
-    return (
-        f'<div style="margin-bottom:8px;">'
-        f'<div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:2px;">'
-        f'<span style="color:#D0D8E8;">{label}</span>'
-        f'<span style="font-weight:700; color:{color};">{score}/100</span>'
-        f'</div>'
-        f'<div style="background:#1E2A3A; border-radius:6px; height:7px; overflow:hidden;">'
-        f'<div style="height:7px; border-radius:6px; width:{score}%; background:linear-gradient(90deg,{color}88,{color});"></div>'
-        f'</div>'
-        f'</div>'
-    )
+        return '<span style="color:#22c55e; font-size:0.72rem;">✓ No flags</span>'
+    return " ".join(f'<span style="{_RISK_PILL}">{flag}</span>' for flag in flags)
 
 
 def _risk_color(score: int) -> str:
-    """Returns a hex colour for a risk score (higher score = more risk = redder)."""
     if score >= 61:
-        return "#FF4757"
+        return "#ef4444"
     if score >= 31:
-        return "#FFB800"
-    return "#00E096"
+        return "#f59e0b"
+    return "#22c55e"
+
+
+def _risk_tag(score: int) -> str:
+    if score >= 61:
+        return "High"
+    if score >= 31:
+        return "Med"
+    return "Low"
+
+
+def _risk_width(score: int) -> int:
+    """Map 0–100 risk score to a fill-width percentage for the bar (15–80%)."""
+    return max(5, min(80, score))
+
+
+def render_risk_bar(score: int, label: str, color: str) -> str:
+    """Horizontal bar with always-visible score and risk level label."""
+    tag = _risk_tag(score)
+    w   = _risk_width(score)
+    risk_label = "Low" if score <= 30 else "Medium" if score <= 60 else "High"
+    return (
+        f'<div style="display:flex; align-items:center; gap:8px; margin-bottom:7px;">'
+        f'<span style="width:90px; font-size:0.75rem; color:#94a3b8; flex-shrink:0;">{label}</span>'
+        f'<div style="flex:1; background:#1c2535; border-radius:3px; height:8px; overflow:hidden;">'
+        f'<div style="width:{w}%; height:8px; background:{color}; border-radius:3px;"></div>'
+        f'</div>'
+        f'<span style="width:72px; font-size:0.72rem; font-weight:600; color:{color}; text-align:right;">{score}/100 {risk_label}</span>'
+        f'</div>'
+    )
 
 
 def render_risk_dashboard(risk: dict):
-    """
-    Renders the 3-category risk breakdown inside a Streamlit expander.
-    Uses st.html for the bar charts and st.columns for layout.
-    """
     if not risk:
-        st.caption("Risk data not available for this supplier.")
+        st.caption("Risk data not available.")
         return
-
-    geo   = risk.get("geopolitical_risk", 0)
-    env   = risk.get("environmental_risk", 0)
-    sup   = risk.get("supplier_risk", 0)
-    overall = risk.get("overall_risk_score", 0)
-    level = risk.get("risk_level", "Unknown")
-
-    bars_html = (
-        render_risk_bar(geo,     "🌍 Geopolitical & Trade",     _risk_color(geo)) +
-        render_risk_bar(env,     "🌱 Environmental & Seasonal",  _risk_color(env)) +
-        render_risk_bar(sup,     "🏢 Supplier-Specific",         _risk_color(sup))
+    geo = risk.get("geopolitical_risk", 0)
+    env = risk.get("environmental_risk", 0)
+    sup = risk.get("supplier_risk", 0)
+    html = (
+        f'<div style="margin-bottom:4px;">'
+        f'<span style="font-size:0.68rem; font-weight:600; color:#f59e0b; text-transform:uppercase; letter-spacing:0.08em;">● RISK INTELLIGENCE</span>'
+        f'</div>'
+        + render_risk_bar(geo, "Geopolitical", _risk_color(geo))
+        + render_risk_bar(env, "Environmental", _risk_color(env))
+        + render_risk_bar(sup, "Supplier",      _risk_color(sup))
     )
-    st.html(bars_html)
-
-    col1, col2 = st.columns(2)
-    with col1:
-        badge = get_risk_badge(level, overall)
-        st.html(f'<div style="margin-top:4px; color:#D0D8E8;"><strong>Overall:</strong> {badge}</div>')
-    with col2:
-        st.html(f'<div style="font-size:0.82rem; color:#8892A4; margin-top:8px;">'
-                f'Overall risk score: <strong style="color:#D0D8E8;">{overall}/100</strong>'
-                f'</div>')
-
-    notes = [
-        ("Geopolitical", risk.get("geopolitical_notes", "")),
-        ("Environmental", risk.get("environmental_notes", "")),
-        ("Supplier",      risk.get("supplier_risk_notes", "")),
-    ]
-    for label, note in notes:
-        if note:
-            st.html(f'<p style="font-size:0.8rem; color:#8892A4; margin:4px 0;">'
-                    f'<strong style="color:#D0D8E8;">{label}:</strong> {note}</p>')
+    st.markdown(html, unsafe_allow_html=True)
 
 
 def render_logistics_section(logistics: dict, landed: dict):
-    """
-    Renders the logistics options table and landed cost breakdown
-    inside a Streamlit expander.
-    """
     if not logistics and not landed:
-        st.caption("Logistics data not available for this supplier.")
+        st.caption("Logistics data not available.")
         return
 
-    # ── Logistics Options Table ──
+    # ── Best Logistics (top recommended mode only) ──
     if logistics:
-        st.markdown("**Available Logistics Modes:**")
-        rows = []
-        for key, opt in logistics.items():
+        priority = ["road", "sea_fcl", "sea_lcl", "air", "intermodal"]
+        rows_html = '<div style="font-size:0.75rem; font-weight:600; color:#8b5cf6; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:4px;">● BEST LOGISTICS</div>'
+        for key in priority + [k for k in logistics if k not in priority]:
+            if key not in logistics:
+                continue
+            opt  = logistics[key]
             mode = opt.get("mode", key)
             days = opt.get("transit_days", ("?", "?"))
-            days_str = f"{days[0]}–{days[1]} days" if isinstance(days, tuple) else str(days)
-
-            if "cost_per_kg_usd" in opt:
-                cost_str = f"${opt['cost_per_kg_usd']:.3f}/kg"
-            elif "cost_per_cbm_usd" in opt:
-                cost_str = f"${opt['cost_per_cbm_usd']}/CBM"
-            else:
-                cost_str = "N/A"
-
-            route = opt.get("route", opt.get("note", ""))
-            rows.append({"Mode": mode, "Cost": cost_str, "Transit": days_str, "Route/Note": route})
-
-        if rows:
-            st.dataframe(
-                pd.DataFrame(rows),
-                use_container_width=True,
-                hide_index=True,
+            days_str = f"{days[0]}–{days[1]}d" if isinstance(days, tuple) else str(days)
+            rows_html += (
+                f'<div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">'
+                f'<span style="font-size:0.82rem; color:#e2e8f0; font-weight:500; min-width:90px;">{mode}</span>'
+                f'<span style="border:1px solid #2a3a52; color:#94a3b8; padding:1px 5px; border-radius:3px; font-size:0.72rem;">{days_str}</span>'
+                f'<span style="background:#4f83cc22; color:#4f83cc; border:1px solid #4f83cc44; padding:1px 5px; border-radius:3px; font-size:0.72rem;">Recommended</span>'
+                f'</div>'
             )
+            break
+        st.html(rows_html)
 
-    # ── Landed Cost Breakdown ──
+    # ── Landed Cost ──
     if landed:
-        st.markdown("**Total Landed Cost to Ontario (est.):**")
-
-        is_cusma = landed.get("is_cusma", False)
-        tariff   = landed.get("tariff_rate_pct", 12)
-        mode     = landed.get("logistics_mode", "Sea Freight")
-
-        if is_cusma:
-            st.html(f'<span style="{_CUSMA}">🍁 CUSMA Eligible — 0% Import Duty</span>'
-                    f'&nbsp;<span style="{_MUTED}">({mode})</span>')
-        else:
-            st.html(f'<span style="{_MUTED}">Logistics: {mode} | Duty: {tariff:.0f}%</span>')
-
-        items = [
-            ("FOB Price (origin)",          landed.get("fob_price_usd", 0)),
-            ("Ocean/Air/Truck Freight",     landed.get("freight_per_kg_usd", 0)),
-            ("Insurance (0.5%)",            landed.get("insurance_per_kg_usd", 0)),
-            (f"Import Duty ({tariff:.0f}%)", landed.get("import_duty_per_kg_usd", 0)),
-            ("CFIA Inspection Fee",         landed.get("cfia_fee_per_kg_usd", 0)),
-            ("Inland to Ontario",           landed.get("inland_per_kg_usd", 0)),
-            ("Inventory Holding (3.75%)",   landed.get("inventory_cost_per_kg_usd", 0)),
-        ]
+        is_cusma  = landed.get("is_cusma", False)
+        tariff    = landed.get("tariff_rate_pct", 12)
         total_usd = landed.get("total_landed_usd", 0)
         total_cad = landed.get("total_landed_cad", 0)
 
-        table_rows = "".join(
-            f"<tr><td style='padding:3px 8px; font-size:0.82rem; color:#8892A4;'>{lbl}</td>"
-            f"<td style='padding:3px 8px; font-size:0.82rem; text-align:right; color:#D0D8E8;'>${val:.3f}/kg</td></tr>"
-            for lbl, val in items
+        items = [
+            ("Product (FOB)",    landed.get("fob_price_usd", 0)),
+            ("Freight",          landed.get("freight_per_kg_usd", 0)),
+            (f"Duty {tariff:.0f}%", landed.get("import_duty_per_kg_usd", 0)),
+            ("Insurance",        landed.get("insurance_per_kg_usd", 0)),
+            ("Compliance/Other", (landed.get("cfia_fee_per_kg_usd", 0)
+                                  + landed.get("inland_per_kg_usd", 0)
+                                  + landed.get("inventory_cost_per_kg_usd", 0))),
+        ]
+        lines = "".join(
+            f'<div style="display:flex; justify-content:space-between; font-size:0.72rem; padding:1px 0;">'
+            f'<span style="color:#64748b; font-size:0.78rem;">{lbl}</span>'
+            f'<span style="color:{"#f59e0b" if "Duty" in lbl and v > 0 else "#94a3b8"}; font-size:0.78rem;">${v:.3f}/kg</span>'
+            f'</div>'
+            for lbl, v in items
         )
-        table_html = f"""
-        <table style="width:100%; border-collapse:collapse; margin-top:6px;">
-            {table_rows}
-            <tr style="border-top:2px solid #1E2A3A; background:#0A0E1A;">
-                <td style="padding:5px 8px; font-size:0.88rem; font-weight:700; color:#F0F4FF;">Total Landed Cost</td>
-                <td style="padding:5px 8px; font-size:0.88rem; font-weight:700; text-align:right; color:#00D4FF;">
-                    ${total_usd:.3f}/kg USD<br>
-                    <span style="color:#8892A4; font-size:0.8rem;">${total_cad:.3f}/kg CAD</span>
-                </td>
-            </tr>
-        </table>
-        <p style="font-size:0.75rem; color:#8892A4; margin-top:4px;">
-            * Estimates based on typical mid-market FOB prices. Actual quotes may vary.
-        </p>"""
-        st.html(table_html)
+        cusma_badge = (f'<span style="{_CUSMA}">🍁 CUSMA 0%</span>' if is_cusma
+                       else f'<span style="color:#f59e0b; font-size:0.68rem;">Duty: {tariff:.0f}%</span>')
+        st.html(f"""
+        <div style="font-size:0.75rem; font-weight:600; color:#06b6d4; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:4px;">● LANDED COST (USD)</div>
+        {lines}
+        <div style="display:flex; justify-content:space-between; border-top:1px solid #2a3a52; margin-top:4px; padding-top:4px;">
+            <span style="font-size:0.82rem; font-weight:600; color:#06b6d4;">Total</span>
+            <span style="font-size:0.82rem; font-weight:600; color:#06b6d4;">${total_usd:.3f}/kg &nbsp;<span style="color:#64748b; font-weight:400;">${total_cad:.3f} CAD</span></span>
+        </div>
+        <div style="margin-top:4px;">{cusma_badge}</div>
+        """)
 
 
 def render_supplier_card(supplier: dict, index: int, product: str, user_profile: dict = None):
@@ -478,125 +452,122 @@ def render_supplier_card(supplier: dict, index: int, product: str, user_profile:
         product:      Product searched for (duplicate check on save)
         user_profile: Current user profile dict (optional)
     """
-    score  = supplier.get("score", 0)
-    sclass = supplier.get("supplier_class", supplier.get("supplier_type", "Distributor"))
-    certs  = supplier.get("certifications", [])
-    flags  = supplier.get("risk_flags", [])
-    risk   = supplier.get("risk_assessment", {})
+    score     = supplier.get("score", 0)
+    sclass    = supplier.get("supplier_class", supplier.get("supplier_type", "Distributor"))
+    certs     = supplier.get("certifications", [])
+    flags     = supplier.get("risk_flags", [])
+    risk      = supplier.get("risk_assessment", {})
     logistics = supplier.get("logistics_options", {})
     landed    = supplier.get("landed_cost", {})
 
-    risk_level    = risk.get("risk_level", "Unknown")
-    is_cusma      = landed.get("is_cusma", False)
-    total_usd     = landed.get("total_landed_usd", 0)
-    is_curated   = supplier.get("is_curated", False)
+    risk_level  = risk.get("risk_level", "Unknown")
+    overall_risk = risk.get("overall_risk_score", 0)
+    is_cusma    = landed.get("is_cusma", False)
+    total_usd   = landed.get("total_landed_usd", 0)
+    is_curated  = supplier.get("is_curated", False)
     contact_note = supplier.get("contact_note", "") or supplier.get("contact_info", "")
-    contact_line = f'📞 <strong>Contact:</strong> {contact_note or "Visit website"}'
 
-    class_badge   = get_class_badge(sclass)
-    risk_badge    = get_risk_badge(risk_level, risk.get("overall_risk_score", 0))
-    cusma_html    = f'&nbsp;<span style="{_CUSMA}">🍁 CUSMA</span>' if is_cusma else ""
-    cost_html     = (f'&nbsp;<span style="{_MUTED}">Landed: <strong>${total_usd:.2f}/kg USD</strong></span>'
-                     if total_usd else "")
-    curated_html  = f'<span style="{_CURATED_BADGE}">⭐ Verified Supplier</span>&nbsp;' if is_curated else ""
+    # Score tier for left border accent
+    ring_color = "#22c55e" if score >= 75 else ("#f59e0b" if score >= 50 else "#ef4444")
 
-    tier  = get_score_tier(score)
-    accent = tier["color"]
+    # Top-pick: highest-scoring Manufacturer/Local Vendor
+    is_top = (score == max((s.get("score", 0) for s in [supplier]), default=0)
+              and sclass in ("Manufacturer", "Local Vendor") and score >= 60)
+
+    top_badge  = '<span style="background:#1a3a28; color:#22c55e; border:1px solid #22c55e44; padding:1px 6px; border-radius:3px; font-size:0.65rem; font-weight:700; margin-right:4px;">★ TOP PICK</span>' if is_top else ""
+    cur_badge  = f'<span style="{_CURATED_BADGE}">⭐ Verified</span>' if is_curated else ""
+    class_badge = get_class_badge(sclass)
+    cusma_badge = (f'<span style="{_CUSMA}">🍁 CUSMA</span>' if is_cusma
+                   else '<span style="background:#3a1010; color:#ef4444; padding:2px 7px; border-radius:4px; font-size:0.68rem;">Non-CUSMA</span>')
+    risk_badge  = get_risk_badge(risk_level, overall_risk)
+
+    tier_label  = "PROMISING" if score >= 50 else "NEEDS VERIFICATION"
+    tier_color  = "#f59e0b"   if score >= 50 else "#ef4444"
+    if score >= 75:
+        tier_label = "VERIFIED"
+        tier_color = "#22c55e"
+    status_badge = f'<span style="background:{tier_color}22; color:{tier_color}; border:1px solid {tier_color}44; padding:2px 7px; border-radius:4px; font-size:0.68rem; font-weight:600;">{tier_label}</span>'
+
+    cost_note = f'${total_usd:.2f}/kg' if total_usd else ""
+    moq       = supplier.get("moq", "")
+    lead      = supplier.get("lead_time", "")
+    summary   = supplier.get("summary", "")
+    website   = supplier.get("website", "")
+
+    border_extra = f"box-shadow:0 0 0 1px #1e3a5f; border-color:#3d6ba8;" if is_top else ""
 
     card_html = f"""
-    <div style="background:#111827; border:1px solid #1E2A3A; border-left:3px solid {accent};
-                border-radius:12px; padding:20px 24px 14px 24px; margin-bottom:12px;
-                box-shadow:0 4px 24px rgba(0,0,0,0.4);">
-
-        <div style="display:flex; align-items:flex-start; gap:20px;">
-
-            <!-- Score gauge column -->
-            <div style="min-width:110px; flex-shrink:0; text-align:center;">
-                {generate_score_gauge(score)}
+    <div style="{_CARD} border-left:3px solid {ring_color}; {border_extra}">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+            <div style="font-size:0.92rem; font-weight:600; color:#e2e8f0; line-height:1.3; padding-right:12px;">
+                {top_badge}{cur_badge}{supplier.get('name','Unknown Supplier')}
             </div>
-
-            <!-- Main content -->
-            <div style="flex:1; min-width:0;">
-                <div style="{_NAME}">{curated_html}{supplier.get('name', 'Unknown Supplier')}</div>
-
-                <div style="margin-bottom:10px; font-size:0.85rem; display:flex; flex-wrap:wrap; align-items:center; gap:6px;">
-                    <span style="color:#8892A4;">📍 {supplier.get('location', 'Not specified')}</span>
-                    <span style="color:#1E2A3A;">|</span>
-                    {class_badge}{cusma_html}
-                    <span style="color:#1E2A3A;">|</span>
-                    {risk_badge}
-                    {cost_html}
-                </div>
-
-                <div style="margin:8px 0 6px 0;">
-                    <span style="{_MUTED}">🔬 CERTS &nbsp;</span>
-                    {render_cert_badges(certs, sclass)}
-                </div>
-
-                <div style="margin-bottom:10px;">
-                    <span style="{_MUTED}">⚑ FLAGS &nbsp;</span>
-                    {render_risk_badges(flags)}
-                </div>
-
-                <p style="color:#D0D8E8; margin-bottom:10px; font-size:0.9rem; line-height:1.55;">
-                    {supplier.get('summary', '')}
-                </p>
-
-                <div style="display:flex; gap:24px; font-size:0.84rem; color:#8892A4; margin-bottom:8px; flex-wrap:wrap;">
-                    <span>📦 <strong style="color:#D0D8E8;">MOQ:</strong> {supplier.get('moq', 'Not specified')}</span>
-                    <span>⏱ <strong style="color:#D0D8E8;">Lead Time:</strong> {supplier.get('lead_time', 'Not specified')}</span>
-                    <span style="color:#8892A4;">{contact_line}</span>
-                </div>
-
-                <div style="{_MUTED}">💪 <strong style="color:#D0D8E8;">Strengths:</strong> {supplier.get('strengths', 'N/A')}</div>
+            <span style="background:{ring_color}22; color:{ring_color}; border:1px solid {ring_color}44; padding:4px 12px; border-radius:12px; font-size:0.82rem; font-weight:700; flex-shrink:0;">{score}</span>
+        </div>
+        <div>
+            <div style="font-size:0.78rem; color:#94a3b8; margin-bottom:6px;">
+                📍 {supplier.get('location','Not specified')}
+                {f'&nbsp;·&nbsp;<a href="{website}" target="_blank" style="color:#4f83cc; text-decoration:none;">↗ website</a>' if website and website.startswith("http") else ""}
+                {f"&nbsp;·&nbsp;<span style='color:#22c55e; font-weight:600;'>{cost_note}</span>" if cost_note else ""}
+            </div>
+            <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:6px; align-items:center;">
+                {class_badge}{cusma_badge}{status_badge}{risk_badge}
+            </div>
+            <div style="margin-bottom:5px; font-size:0.75rem; color:#94a3b8;">CERTS &nbsp;{render_cert_badges(certs, sclass)}</div>
+            <div style="margin-bottom:6px; font-size:0.75rem; color:#94a3b8;">FLAGS &nbsp;{render_risk_badges(flags[:3])}</div>
+            <div style="color:#94a3b8; font-size:0.82rem; line-height:1.5; margin-bottom:6px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; max-height:2.9em; word-break:break-word;">
+                {summary}
+            </div>
+            <div style="display:flex; gap:16px; font-size:0.76rem; color:#94a3b8; flex-wrap:wrap;">
+                {"<span>MOQ: <strong style='color:#94a3b8;'>" + moq + "</strong></span>" if moq and moq.lower() != "not specified" else ""}
+                {"<span>Lead: <strong style='color:#94a3b8;'>" + lead + "</strong></span>" if lead and lead.lower() != "not specified" else ""}
+                {"<span>📞 <span style='color:#94a3b8;'>" + contact_note + "</span></span>" if contact_note else ""}
             </div>
         </div>
     </div>"""
 
-    st.html(card_html)
+    col_name, col_ring = st.columns([9, 1])
+    with col_name:
+        st.html(card_html)
+    with col_ring:
+        st.html(generate_score_ring(score))
 
-    # ── Expandable detail panels ──
-    col_risk, col_logistics = st.columns(2)
+    # ── Inline detail section: Risk | Landed Cost | Logistics ──
+    col_risk, col_cost, col_log = st.columns(3)
 
     with col_risk:
-        with st.expander("⚠️ Risk Intelligence"):
-            render_risk_dashboard(risk)
+        render_risk_dashboard(risk)
 
-    with col_logistics:
-        with st.expander("🚢 Logistics & Landed Cost"):
-            render_logistics_section(logistics, landed)
+    with col_cost:
+        render_logistics_section({}, landed)
+
+    with col_log:
+        render_logistics_section(logistics, {})
 
     # ── Action buttons ──
-    col_link, col_save, col_compare, _ = st.columns([1, 1, 1, 3])
-
-    with col_link:
-        website_url = supplier.get("website", "")
-        if website_url and website_url.startswith("http"):
-            st.link_button("🌐 Website", website_url)
-        else:
-            st.caption("No website")
+    col_save, col_cmp, col_web = st.columns(3)
 
     with col_save:
         save_key = f"save_{index}"
-        already_saved = st.session_state.get("save_status", {}).get(save_key, False)
-        if already_saved:
+        if st.session_state.get("save_status", {}).get(save_key):
             st.success("Saved ✓")
-        else:
-            if st.button("💾 Save", key=save_key):
-                if supplier_already_saved(supplier.get("name", ""), product):
-                    st.warning("Already saved.")
-                else:
-                    save_supplier(supplier)
-                    if "save_status" not in st.session_state:
-                        st.session_state["save_status"] = {}
-                    st.session_state["save_status"][save_key] = True
-                    st.rerun()
+        elif st.button("Save", key=save_key, use_container_width=True):
+            if supplier_already_saved(supplier.get("name", ""), product):
+                st.warning("Already saved.")
+            else:
+                save_supplier(supplier)
+                st.session_state.setdefault("save_status", {})[save_key] = True
+                st.rerun()
 
-    with col_compare:
-        currently_checked = st.session_state.get(f"compare_{index}", False)
-        st.checkbox("⊕ Compare", key=f"compare_{index}", value=currently_checked)
+    with col_cmp:
+        st.checkbox("Compare", key=f"compare_{index}",
+                    value=st.session_state.get(f"compare_{index}", False))
 
-    st.html("<div style='height:4px;'></div>")
+    with col_web:
+        if website and website.startswith("http"):
+            st.link_button("↗ Website", website, use_container_width=True)
+
+    st.html("<div style='height:2px;'></div>")
 
 
 def render_comparison_panel(suppliers: list):
@@ -1089,78 +1060,101 @@ with tab_search:
         searched_product  = st.session_state.get("searched_product", "")
         searched_category = st.session_state.get("searched_category", "")
 
-        st.markdown("---")
+        # ── Metrics bar ──
+        avg_score       = round(sum(s.get("score", 0) for s in results) / len(results), 1)
+        verified_count  = sum(1 for s in results if s.get("score", 0) >= 75)
+        cusma_count     = sum(1 for s in results if s.get("landed_cost", {}).get("is_cusma"))
+        unconf_count    = sum(1 for s in results if not s.get("certifications"))
+        high_risk_count = sum(1 for s in results if s.get("risk_assessment", {}).get("risk_level") == "High")
+        best_cost       = min((s.get("landed_cost", {}).get("total_landed_usd", 999) for s in results), default=0)
+        best_cost_str   = f"${best_cost:.2f}/kg" if best_cost and best_cost < 900 else "—"
 
-        # ── Summary Metrics ──
-        avg_score      = round(sum(s.get("score", 0) for s in results) / len(results), 1)
-        verified_count = sum(1 for s in results if s.get("score", 0) >= 75)
-        flagged_count  = sum(1 for s in results if s.get("risk_flags"))
-        high_risk_count = sum(
-            1 for s in results
-            if s.get("risk_assessment", {}).get("risk_level") == "High"
+        def _metric(label, value, color):
+            return (f'<div style="background:#161e2a; border:1px solid #2a3a52; border-radius:6px;'
+                    f' padding:10px 14px; flex:1; min-width:90px;">'
+                    f'<div style="font-size:0.65rem; color:#64748b; text-transform:uppercase; letter-spacing:0.07em; margin-bottom:3px;">{label}</div>'
+                    f'<div style="font-size:1rem; font-weight:700; color:{color};">{value}</div>'
+                    f'</div>')
+
+        st.html(
+            f'<div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">'
+            + _metric("Suppliers", len(results), "#4f83cc")
+            + _metric("Avg Score", f"{avg_score}/100", "#e2e8f0")
+            + _metric("CUSMA", cusma_count, "#22c55e")
+            + _metric("Unconfirmed Certs", unconf_count, "#f59e0b")
+            + _metric("High Risk", high_risk_count, "#ef4444")
+            + _metric("Best Landed", best_cost_str, "#22c55e")
+            + '</div>'
         )
 
-        m1, m2, m3, m4, m5 = st.columns(5)
-        m1.metric("Suppliers Found",  len(results))
-        m2.metric("Avg Score",        f"{avg_score}/100")
-        m3.metric("Verified (75+)",   verified_count)
-        m4.metric("With Risk Flags",  flagged_count)
-        m5.metric("High Risk",        high_risk_count)
-
-        st.markdown(f"### 📦 Results for **{searched_product}**")
-        st.html(f'<span style="{_MUTED}">Category: {searched_category} &nbsp;|&nbsp; '
-                f'Location preference: {profile.get("location", "Ontario, Canada")}</span>')
-
-        # ── Compare Controls ──
-        compare_indices = [
-            i for i in range(len(results))
-            if st.session_state.get(f"compare_{i}", False)
-        ]
-        compare_count = len(compare_indices)
-
-        compare_col, strategy_col, _ = st.columns([2, 2, 2])
-        with compare_col:
-            if compare_count == 0:
-                st.caption("Tick ⊕ Compare on any cards below to compare suppliers.")
-            elif compare_count > 4:
-                st.warning(f"⚠ {compare_count} selected — only the first 4 will be compared.")
-            else:
-                if st.button(
-                    f"🔄 Compare {compare_count} Supplier{'s' if compare_count != 1 else ''}",
-                    type="primary",
-                ):
-                    st.session_state["show_comparison"] = True
-
-        with strategy_col:
-            if st.button("🎯 Generate Sourcing Strategy", type="secondary"):
-                with st.spinner("Generating strategy recommendation..."):
+        # ── Strategy bar (above cards) ──
+        strategy = st.session_state.get("sourcing_strategy")
+        strat_col, btn_col = st.columns([5, 1])
+        with btn_col:
+            if st.button("Generate Strategy →", use_container_width=True):
+                with st.spinner("Generating..."):
                     try:
                         strat = generate_sourcing_strategy(
-                            suppliers=results,
-                            product=searched_product,
+                            suppliers=results, product=searched_product,
                             qsr_category=searched_category,
-                            api_key=anthropic_key,
-                            user_profile=profile,
+                            api_key=anthropic_key, user_profile=profile,
                         )
                         st.session_state["sourcing_strategy"] = strat
+                        st.rerun()
                     except Exception as e:
-                        st.error(f"Strategy generation failed: {e}")
+                        st.error(f"Strategy failed: {e}")
+        with strat_col:
+            if strategy:
+                primary   = strategy.get("primary_supplier", "—")
+                backup    = strategy.get("backup_supplier", "—")
+                vol_split = strategy.get("volume_split", "—")
+                savings   = strategy.get("estimated_savings_note", "")
+                savings_html = f'<span style="font-size:0.75rem; color:#22c55e;">{savings}</span>' if savings else ""
+                st.html(
+                    f'<div style="background:#161e2a; border:1px solid #2a3a52; border-radius:6px;'
+                    f' padding:8px 14px; display:flex; gap:20px; align-items:center; flex-wrap:wrap;">'
+                    f'<span style="font-size:0.75rem; color:#64748b;">Primary: <strong style="color:#4f83cc;">{primary}</strong></span>'
+                    f'<span style="font-size:0.75rem; color:#64748b;">Backup: <strong style="color:#94a3b8;">{backup}</strong></span>'
+                    f'<span style="font-size:0.75rem; color:#64748b;">Split: <strong style="color:#e2e8f0;">{vol_split}</strong></span>'
+                    f'{savings_html}'
+                    f'</div>'
+                )
+            else:
+                st.caption("Click Generate Strategy for an AI sourcing recommendation.")
 
-        # ── Supplier Cards ──
+        # ── Compare controls ──
+        compare_indices = [i for i in range(len(results)) if st.session_state.get(f"compare_{i}")]
+        compare_count = len(compare_indices)
+        if compare_count > 0:
+            c1, c2 = st.columns([2, 4])
+            with c1:
+                if compare_count > 4:
+                    st.warning(f"{compare_count} selected — max 4")
+                elif st.button(f"Compare {compare_count} selected →", type="primary"):
+                    st.session_state["show_comparison"] = True
+
+        # ── Section header + single-column card list ──
         primary_classes = {"Manufacturer", "Local Vendor"}
         web_primary   = [s for s in results if s.get("supplier_class") in primary_classes]
         web_secondary = [s for s in results if s.get("supplier_class") not in primary_classes]
+        buyer_loc     = profile.get("location", "Ontario, Canada")
 
         if web_primary:
-            st.markdown("##### 🏭 Manufacturers & Local Vendors")
-        for i, supplier in enumerate(web_primary):
-            render_supplier_card(supplier, i, searched_product, profile)
-        offset = len(web_primary)
+            st.html(
+                f'<div style="{_SECTION_H}">MANUFACTURERS & LOCAL VENDORS — {searched_product} · {buyer_loc} · {len(web_primary)} of {len(results)} shown</div>'
+            )
+            for i, supplier in enumerate(web_primary):
+                with st.container():
+                    render_supplier_card(supplier, i, searched_product, profile)
 
+        offset = len(web_primary)
         if web_secondary:
-            st.markdown("##### 🏪 Distributors & Traders")
-        for i, supplier in enumerate(web_secondary):
-            render_supplier_card(supplier, offset + i, searched_product, profile)
+            st.html(
+                f'<div style="{_SECTION_H}">DISTRIBUTORS & TRADERS — {len(web_secondary)} shown</div>'
+            )
+            for i, supplier in enumerate(web_secondary):
+                with st.container():
+                    render_supplier_card(supplier, offset + i, searched_product, profile)
 
         # ── Comparison Panel ──
         if st.session_state.get("show_comparison") and compare_indices:
@@ -1170,8 +1164,7 @@ with tab_search:
                 st.session_state["show_comparison"] = False
                 st.rerun()
 
-        # ── Sourcing Strategy ──
-        strategy = st.session_state.get("sourcing_strategy")
+        # ── Full strategy detail (below cards) ──
         if strategy:
             render_sourcing_strategy(strategy)
 
