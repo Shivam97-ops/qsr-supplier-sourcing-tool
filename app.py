@@ -320,17 +320,17 @@ def render_risk_badges(flags: list) -> str:
 
 
 def _risk_color(score: int) -> str:
-    if score >= 61:
+    if score >= 67:
         return "#ef4444"
-    if score >= 31:
+    if score >= 34:
         return "#f59e0b"
     return "#22c55e"
 
 
 def _risk_tag(score: int) -> str:
-    if score >= 61:
+    if score >= 67:
         return "High"
-    if score >= 31:
+    if score >= 34:
         return "Med"
     return "Low"
 
@@ -344,7 +344,7 @@ def render_risk_bar(score: int, label: str, color: str) -> str:
     """Horizontal bar with always-visible score and risk level label."""
     tag = _risk_tag(score)
     w   = _risk_width(score)
-    risk_label = "Low" if score <= 30 else "Medium" if score <= 60 else "High"
+    risk_label = "Low" if score <= 33 else "Medium" if score <= 66 else "High"
     return (
         f'<div style="display:flex; align-items:center; gap:8px; margin-bottom:7px;">'
         f'<span style="width:90px; font-size:0.75rem; color:#94a3b8; flex-shrink:0;">{label}</span>'
@@ -356,22 +356,52 @@ def render_risk_bar(score: int, label: str, color: str) -> str:
     )
 
 
-def render_risk_dashboard(risk: dict):
-    if not risk:
+def render_risk_dashboard(pestle: dict):
+    if not pestle:
         st.caption("Risk data not available.")
         return
-    geo = risk.get("geopolitical_risk", 0)
-    env = risk.get("environmental_risk", 0)
-    sup = risk.get("supplier_risk", 0)
+    dims = [
+        ("Political",     "political"),
+        ("Economic",      "economic"),
+        ("Social",        "social"),
+        ("Technology",    "technology"),
+        ("Legal",         "legal"),
+        ("Environmental", "environmental"),
+    ]
     html = (
-        f'<div style="margin-bottom:4px;">'
-        f'<span style="font-size:0.68rem; font-weight:600; color:#f59e0b; text-transform:uppercase; letter-spacing:0.08em;">● RISK INTELLIGENCE</span>'
-        f'</div>'
-        + render_risk_bar(geo, "Geopolitical", _risk_color(geo))
-        + render_risk_bar(env, "Environmental", _risk_color(env))
-        + render_risk_bar(sup, "Supplier",      _risk_color(sup))
+        '<div style="margin-bottom:4px;">'
+        '<span style="font-size:0.68rem; font-weight:600; color:#f59e0b; text-transform:uppercase; letter-spacing:0.08em;">PESTLE RISK</span>'
+        '</div>'
     )
+    for label, key in dims:
+        dim = pestle.get(key, {})
+        score = dim.get("score", 50) if isinstance(dim, dict) else 50
+        html += render_risk_bar(score, label, _risk_color(score))
     st.markdown(html, unsafe_allow_html=True)
+    with st.expander("What's driving these scores?"):
+        st.markdown("#### PESTLE Risk Breakdown")
+        for dim in ["political", "economic", "social", "technology", "legal", "environmental"]:
+            item = pestle.get(dim, {})
+            score = item.get("score", 50)
+            rationale = item.get("rationale", "No rationale available.")
+            st.markdown(f"**{dim.capitalize()} ({score}/100)** — {rationale}")
+
+
+def render_news_section(news_items: list):
+    if not news_items:
+        return
+    st.markdown("**SUPPLIER NEWS**")
+    for item in news_items[:2]:
+        title   = item.get("title", "")
+        source  = item.get("source", "")
+        date    = item.get("date", "")
+        snippet = item.get("snippet", "")
+        meta    = " · ".join(x for x in [source, date] if x)
+        st.markdown(f"**{title}**")
+        if meta:
+            st.markdown(f'<span style="color:#94a3b8; font-size:0.78rem;">{meta}</span>', unsafe_allow_html=True)
+        if snippet:
+            st.markdown(f'<span style="font-size:0.8rem;">{snippet}</span>', unsafe_allow_html=True)
 
 
 def render_logistics_section(logistics: dict, landed: dict):
@@ -456,12 +486,22 @@ def render_supplier_card(supplier: dict, index: int, product: str, user_profile:
     sclass    = supplier.get("supplier_class", supplier.get("supplier_type", "Distributor"))
     certs     = supplier.get("certifications", [])
     flags     = supplier.get("risk_flags", [])
+    pestle    = supplier.get("pestle", {})
     risk      = supplier.get("risk_assessment", {})
     logistics = supplier.get("logistics_options", {})
     landed    = supplier.get("landed_cost", {})
+    news      = supplier.get("news", [])
 
-    risk_level  = risk.get("risk_level", "Unknown")
-    overall_risk = risk.get("overall_risk_score", 0)
+    if pestle:
+        _pscores = [pestle.get(k, {}).get("score", 50) for k in
+                    ("political", "economic", "social", "technology", "legal", "environmental")
+                    if isinstance(pestle.get(k), dict)]
+        overall_risk = round(sum(_pscores) / len(_pscores)) if _pscores else 50
+        risk_level   = "High" if overall_risk >= 67 else "Medium" if overall_risk >= 34 else "Low"
+    else:
+        risk_level   = risk.get("risk_level", "Unknown")
+        overall_risk = risk.get("overall_risk_score", 0)
+
     is_cusma    = landed.get("is_cusma", False)
     total_usd   = landed.get("total_landed_usd", 0)
     is_curated  = supplier.get("is_curated", False)
@@ -536,13 +576,15 @@ def render_supplier_card(supplier: dict, index: int, product: str, user_profile:
     col_risk, col_cost, col_log = st.columns(3)
 
     with col_risk:
-        render_risk_dashboard(risk)
+        render_risk_dashboard(pestle if pestle else risk)
 
     with col_cost:
         render_logistics_section({}, landed)
 
     with col_log:
         render_logistics_section(logistics, {})
+
+    render_news_section(news)
 
     # ── Action buttons ──
     col_save, col_cmp, col_web = st.columns(3)
@@ -588,13 +630,22 @@ def render_comparison_panel(suppliers: list):
         label    = tier["label"]
         certs    = sup.get("certifications", [])
         flags    = sup.get("risk_flags", [])
+        pestle   = sup.get("pestle", {})
         risk     = sup.get("risk_assessment", {})
         landed   = sup.get("landed_cost", {})
         logistics = sup.get("logistics_options", {})
         sclass   = sup.get("supplier_class", "Distributor")
 
-        risk_level   = risk.get("risk_level", "Unknown")
-        overall_risk = risk.get("overall_risk_score", 0)
+        if pestle:
+            _pscores = [pestle.get(k, {}).get("score", 50) for k in
+                        ("political", "economic", "social", "technology", "legal", "environmental")
+                        if isinstance(pestle.get(k), dict)]
+            overall_risk = round(sum(_pscores) / len(_pscores)) if _pscores else 50
+            risk_level   = "High" if overall_risk >= 67 else "Medium" if overall_risk >= 34 else "Low"
+        else:
+            risk_level   = risk.get("risk_level", "Unknown")
+            overall_risk = risk.get("overall_risk_score", 0)
+
         is_cusma     = landed.get("is_cusma", False)
         total_usd    = landed.get("total_landed_usd", 0)
         total_cad    = landed.get("total_landed_cad", 0)
@@ -1039,6 +1090,7 @@ with tab_search:
                         api_key=anthropic_key,
                         progress_callback=update_progress,
                         user_profile=profile,
+                        serpapi_key=serpapi_key,
                     )
                 except Exception as e:
                     st.error(f"AI analysis failed: {e}")
@@ -1065,7 +1117,16 @@ with tab_search:
         verified_count  = sum(1 for s in results if s.get("score", 0) >= 75)
         cusma_count     = sum(1 for s in results if s.get("landed_cost", {}).get("is_cusma"))
         unconf_count    = sum(1 for s in results if not s.get("certifications"))
-        high_risk_count = sum(1 for s in results if s.get("risk_assessment", {}).get("risk_level") == "High")
+        def _risk_level_of(s):
+            p = s.get("pestle", {})
+            if p:
+                sc = [p.get(k, {}).get("score", 50) for k in
+                      ("political", "economic", "social", "technology", "legal", "environmental")
+                      if isinstance(p.get(k), dict)]
+                avg = sum(sc) / len(sc) if sc else 50
+                return "High" if avg >= 67 else "Medium" if avg >= 34 else "Low"
+            return s.get("risk_assessment", {}).get("risk_level", "Unknown")
+        high_risk_count = sum(1 for s in results if _risk_level_of(s) == "High")
         best_cost       = min((s.get("landed_cost", {}).get("total_landed_usd", 999) for s in results), default=0)
         best_cost_str   = f"${best_cost:.2f}/kg" if best_cost and best_cost < 900 else "—"
 

@@ -291,6 +291,33 @@ def compute_landed_cost(supplier: dict, qsr_category: str) -> dict:
     }
 
 
+def fetch_supplier_news(supplier_name: str, serpapi_key: str) -> list:
+    """Fetch max 2 supply-chain relevant news items for a supplier via SerpAPI."""
+    if not serpapi_key:
+        return []
+    try:
+        import requests
+        params = {
+            "q": f'"{supplier_name}" supply chain OR tariff OR risk OR operations 2026',
+            "api_key": serpapi_key,
+            "num": 3,
+            "tbm": "nws"
+        }
+        response = requests.get("https://serpapi.com/search", params=params, timeout=8)
+        data = response.json()
+        results = []
+        for item in data.get("news_results", [])[:2]:
+            results.append({
+                "title":   item.get("title", ""),
+                "source":  item.get("source", ""),
+                "date":    item.get("date", ""),
+                "snippet": item.get("snippet", "")
+            })
+        return results
+    except Exception:
+        return []
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # SINGLE SUPPLIER SUMMARIZATION
 # ─────────────────────────────────────────────────────────────────────────────
@@ -299,6 +326,7 @@ def summarize_supplier(
     supplier_raw: dict,
     api_key: str,
     user_profile: Optional[dict] = None,
+    serpapi_key: str = "",
 ) -> dict:
     """
     Sends one supplier's raw search data to Claude and returns a fully
@@ -389,27 +417,33 @@ Classify as exactly one of:
 If the supplier is in Canada: always classify as "Local Vendor".
 supplier_type should be "Primary" for Manufacturers and Local Vendors, "Secondary" for others.
 
-━━━━ RISK ASSESSMENT ━━━━
-Score each risk category 0–100 where HIGHER = MORE RISKY.
-  0–30: Low risk  |  31–60: Medium risk  |  61–100: High risk
+━━━━ PESTLE RISK ASSESSMENT ━━━━
+Score each PESTLE dimension 0–100 where HIGHER = MORE RISKY.
+  0–33: Low risk  |  34–66: Medium risk  |  67–100: High risk
 
-geopolitical_risk (0–100): Political stability of supplier country, active trade sanctions,
-  currency volatility vs CAD, labour dispute history.
-  Canada/USA: 5-15  |  EU/Australia: 10-20  |  SE Asia: 25-45  |  Middle East/Africa: 45-70
-  High-risk countries ({risk_countries_str}): 70-95
+CRITICAL: You MUST assess each PESTLE dimension based on the actual supplier, their country,
+industry, and known risk factors. Do NOT return placeholder or example values. Each score must
+reflect genuine analysis. Higher score = higher risk (0=no risk, 100=extreme risk).
 
-environmental_risk (0–100): Weather/climate disruption risk for this product and region,
-  seasonal availability for "{product}", disease outbreak history (avian flu, ASF, etc.).
+political (0–100): Political stability, trade sanctions, tariff policy, government stability.
+  Canada/USA: 5–15  |  EU/Australia: 10–20  |  SE Asia: 25–45  |  Middle East/Africa: 45–70
+  High-risk countries ({risk_countries_str}): 70–95
 
-supplier_risk (0–100): Based on what you can see:
-  - Is this a single-source dependency risk?
-  - Are there certification gaps vs buyer requirements ({buyer_certs})?
-  - Does capacity appear sufficient for a QSR buyer?
-  - Are there quality consistency indicators?
-  Broker/Trader with no certs = 60+. Certified large manufacturer = 10-25.
+economic (0–100): Currency volatility vs CAD, inflation, recession risk, commodity price swings.
+  CUSMA partners (Canada/USA/Mexico): 10–25  |  Stable exporters: 20–35  |  Volatile economies: 50–80
 
-overall_risk_score: Weighted average (geopolitical 35%, environmental 25%, supplier 40%).
-risk_level: "Low" (0–30), "Medium" (31–60), or "High" (61–100).
+social (0–100): Labour availability, workforce stability, demographic risk to supply, ethical sourcing concerns.
+  Consider: labour dispute history, child/forced labour flags, living-wage compliance.
+
+technology (0–100): Supply chain tech maturity, cold-chain reliability, traceability systems, cybersecurity exposure.
+  Large certified manufacturer: 10–25  |  Small exporter with limited traceability: 40–65
+
+legal (0–100): Regulatory compliance risk, certification gaps vs buyer requirements ({buyer_certs}),
+  food safety law alignment (CFIA, FDA, EU), customs/import compliance.
+  Broker/Trader with unconfirmed certs: 55–75  |  Certified large manufacturer: 10–25
+
+environmental (0–100): Weather/climate disruption for this product and region, seasonal availability
+  of "{product}", disease outbreak history (avian flu, ASF, etc.), sustainability/ESG exposure.
 
 ━━━━ RISK FLAGS ━━━━
 Add a string to risk_flags for EACH condition that applies:
@@ -452,15 +486,13 @@ Respond ONLY with a valid JSON object. No markdown, no explanation, no extra tex
     "final_score": 0,
     "score_rationale": "One sentence: biggest factor pushing score up AND biggest factor holding it down"
   }},
-  "risk_assessment": {{
-    "geopolitical_risk": 0,
-    "geopolitical_notes": "1-2 sentences",
-    "environmental_risk": 0,
-    "environmental_notes": "1-2 sentences",
-    "supplier_risk": 0,
-    "supplier_risk_notes": "1-2 sentences",
-    "overall_risk_score": 0,
-    "risk_level": "Low"
+  "pestle": {{
+    "political":     {{"score": 0, "rationale": "One sentence about political risk for this supplier"}},
+    "economic":      {{"score": 0, "rationale": "One sentence about economic risk for this supplier"}},
+    "social":        {{"score": 0, "rationale": "One sentence about social risk for this supplier"}},
+    "technology":    {{"score": 0, "rationale": "One sentence about technology risk for this supplier"}},
+    "legal":         {{"score": 0, "rationale": "One sentence about legal/regulatory risk for this supplier"}},
+    "environmental": {{"score": 0, "rationale": "One sentence about environmental risk for this supplier"}}
   }},
   "risk_flags": [],
   "seasonal_risk": false
@@ -483,7 +515,7 @@ Respond ONLY with a valid JSON object. No markdown, no explanation, no extra tex
     # Sonnet 4.6 — deep reasoning for risk, scoring, and strategy
     response = client.messages.create(
         model="claude-sonnet-4-6",
-        max_tokens=1400,
+        max_tokens=1800,
         system=(
             "You are a QSR procurement analyst. "
             "Always respond with valid JSON only. "
@@ -503,7 +535,7 @@ Respond ONLY with a valid JSON object. No markdown, no explanation, no extra tex
         # Sonnet 4.6 — deep reasoning for risk, scoring, and strategy (retry)
         retry_response = client.messages.create(
             model="claude-sonnet-4-6",
-            max_tokens=1400,
+            max_tokens=1800,
             system="Return only valid JSON. No markdown. No extra text.",
             messages=[
                 {"role": "user", "content": prompt},
@@ -528,14 +560,21 @@ Respond ONLY with a valid JSON object. No markdown, no explanation, no extra tex
     # Compute numeric score from the breakdown (uses final_score if present)
     parsed["score"] = compute_total_score(parsed.get("score_breakdown", {}))
 
-    # Ensure risk_assessment is a dict
-    if not isinstance(parsed.get("risk_assessment"), dict):
-        parsed["risk_assessment"] = {
-            "geopolitical_risk": 30, "geopolitical_notes": "Unable to assess",
-            "environmental_risk": 30, "environmental_notes": "Unable to assess",
-            "supplier_risk": 40,     "supplier_risk_notes": "Unable to assess",
-            "overall_risk_score": 35, "risk_level": "Medium",
+    # Ensure pestle is a dict with all 6 dimensions
+    _pestle_default = {"score": 50, "rationale": "Unable to assess"}
+    if not isinstance(parsed.get("pestle"), dict):
+        parsed["pestle"] = {
+            "political":     dict(_pestle_default),
+            "economic":      dict(_pestle_default),
+            "social":        dict(_pestle_default),
+            "technology":    dict(_pestle_default),
+            "legal":         dict(_pestle_default),
+            "environmental": dict(_pestle_default),
         }
+    else:
+        for dim in ("political", "economic", "social", "technology", "legal", "environmental"):
+            if not isinstance(parsed["pestle"].get(dim), dict):
+                parsed["pestle"][dim] = dict(_pestle_default)
 
     # Auto-add seasonal risk flag for produce category
     if qsr_category == "🥬 Produce":
@@ -555,6 +594,7 @@ Respond ONLY with a valid JSON object. No markdown, no explanation, no extra tex
     # ── Compute logistics and landed cost locally ──
     parsed["logistics_options"] = compute_logistics_options(parsed, qsr_category)
     parsed["landed_cost"]       = compute_landed_cost(parsed, qsr_category)
+    parsed["news"]              = fetch_supplier_news(parsed.get("name", ""), serpapi_key)
 
     return parsed
 
@@ -577,17 +617,20 @@ def _fallback_profile(supplier_raw: dict) -> dict:
         "summary":         supplier_raw.get("snippet", "No summary available."),
         "strengths":       "See website for details",
         "score_breakdown": {k: 0 for k in SCORE_MAXES},
-        "risk_assessment": {
-            "geopolitical_risk": 40, "geopolitical_notes": "Unable to assess — review manually",
-            "environmental_risk": 40, "environmental_notes": "Unable to assess — review manually",
-            "supplier_risk": 50,      "supplier_risk_notes": "Unable to assess — review manually",
-            "overall_risk_score": 45, "risk_level": "Medium",
+        "pestle": {
+            "political":     {"score": 50, "rationale": "Unable to assess — review manually"},
+            "economic":      {"score": 50, "rationale": "Unable to assess — review manually"},
+            "social":        {"score": 50, "rationale": "Unable to assess — review manually"},
+            "technology":    {"score": 50, "rationale": "Unable to assess — review manually"},
+            "legal":         {"score": 50, "rationale": "Unable to assess — review manually"},
+            "environmental": {"score": 50, "rationale": "Unable to assess — review manually"},
         },
         "risk_flags":  ["AI analysis incomplete — review manually"],
         "seasonal_risk": False,
         "score":         0,
         "logistics_options": {},
         "landed_cost":       {},
+        "news":              [],
     }
 
 
@@ -600,6 +643,7 @@ def batch_summarize(
     api_key: str,
     progress_callback: Optional[Callable[[int, int], None]] = None,
     user_profile: Optional[dict] = None,
+    serpapi_key: str = "",
 ) -> list[dict]:
     """
     Summarizes a list of raw supplier search results using Claude, one at a time.
@@ -618,7 +662,7 @@ def batch_summarize(
 
     for i, supplier_raw in enumerate(suppliers_raw):
         try:
-            summarized = summarize_supplier(supplier_raw, api_key, user_profile)
+            summarized = summarize_supplier(supplier_raw, api_key, user_profile, serpapi_key)
             results.append(summarized)
         except Exception as e:
             fallback = _fallback_profile(supplier_raw)
